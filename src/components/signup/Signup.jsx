@@ -59,7 +59,7 @@ const Signup = () => {
 
         dispatch(setEmail(emails));
 
-        console.log(error.response.data.message);
+        // console.log(error.response.data.message);
         if (error.response.data.message == "invalid request body") {
           setErrMessage("Enter a valid Email and Password");
         } else {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { IoAddOutline } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
-import { Button, Input, Modal } from "antd";
+import { Button, Input, Modal, message } from "antd"; 
 import getAccessTokenFromCookie from "@/utils/getAccessToken";
 import axios from "@/api/axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,6 +21,9 @@ const Customfeild = () => {
   const [departmentInput, setDepartmentInput] = useState("");
   const [designationData, setDesignationData] = useState([]);
   const [departmentData, setDepartmentData] = useState([]);
+  const [filledDesignation, setFilledDesignation] = useState(null); 
+  const [filledDepartment, setFilledDepartment] = useState(null);
+
   const dispatch = useDispatch();
   const designations = useSelector(
     (state) => state.organizationSetup.designations
@@ -29,60 +32,42 @@ const Customfeild = () => {
     (state) => state.organizationSetup.departments
   );
 
-  //   Designation GET APi
-  // const fetchDesinationData = async () => {
-  //   try {
-  //     const response = await axios.get("/designation", {
-  //       headers: {
-  //         Authorization: `Bearer ${accessToken}`,
-  //       },
-  //     });
-  //     dispatch(setDesignations(response.data));
-  //     console.log(response);
-  //   } catch (error) {
-  //     console.error("Error fetching designations:", error);
-  //   }
-  // };
-  // useEffect(() => {
-  //   fetchDesinationData();
-  // }, []);
+  const designationInputRef = useRef(null);
+  const departmentInputRef = useRef(null);
 
   useEffect(() => {
-    const fetchDesinationData = async () => {
-      try {
-        const response = await axios.get("/designation", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        dispatch(setDesignations(response.data));
-        console.log(response);
-      } catch (error) {
-        console.error("Error fetching designations:", error);
-      }
-    };
-    fetchDesinationData();
-  }, [dispatch, accessToken]);
-
-  //   Department GET API
-
-  // const fetchDepartmentData = async () => {
-  //   try {
-  //     const response = await axios.get("/department", {
-  //       headers: {
-  //         Authorization: `Bearer ${accessToken}`,
-  //       },
-  //     });
-  //     dispatch(setDepartments(response.data));
-  //     console.log(response);
-  //   } catch (error) {
-  //     console.error("Error fetching departments:", error);
-  //   }
-  // };
-  // useEffect(() => {
-  //   fetchDepartmentData();
-  // }, []);
-
+    if (designationModal) {
+      setTimeout(() => {
+        designationInputRef.current.focus();
+      }, 0);
+    }
+  }, [designationModal]);
+  
+  useEffect(() => {
+    if (departmentModal) {
+      setTimeout(() => {
+        departmentInputRef.current.focus();
+      }, 0);
+    }
+  }, [departmentModal]);
+    
+    useEffect(() => {
+      const fetchDesinationData = async () => {
+        try {
+          const response = await axios.get("/designation", {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          dispatch(setDesignations(response.data));
+          console.log(response);
+        } catch (error) {
+          console.error("Error fetching designations:", error);
+        }
+      };
+      fetchDesinationData();
+    }, [dispatch, accessToken]);
+    
   useEffect(() => {
     const fetchDepartmentData = async () => {
       try {
@@ -100,44 +85,54 @@ const Customfeild = () => {
     fetchDepartmentData();
   }, [dispatch, accessToken]);
 
-  //   Designation POST APi
-  const handleAddDesignation = async () => {
-    const data = {
-      designation: designationInput,
-      org_id: "482d8374-fca3-43ff-a638-02c8a425c492",
-    };
-    try {
-      const response = await axios.post("/designation", data, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      console.log("Designation Data:", response);
-    } catch (error) {
-      console.error("Error adding designation:", error);
-    }
-    fetchDesinationData();
-  };
 
-  // Department POST API
-  const handleAddDepartment = async () => {
-    const data = {
-      name: departmentInput,
-      org_id: "482d8374-fca3-43ff-a638-02c8a425c492",
-    };
-    try {
-      const response = await axios.post("/department", data, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      console.log("Department Data:", response);
-      await setDepartmentModal(false);
-    } catch (error) {
-      console.error("Error adding department:", error);
-    }
-    fetchDepartmentData();
+  // Designation POST APi
+const handleAddDesignation = async () => {
+  const data = {
+    designation: designationInput,
+    org_id: "482d8374-fca3-43ff-a638-02c8a425c492",
   };
+  try {
+    const response = await axios.post("/designation", data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    setFilledDesignation(data); 
+    message.success("Designation added successfully"); 
+    setDesignationInput(""); 
+    setDesignationModal(false); 
+  } catch (error) {
+    console.error("Error adding designation:", error);
+    message.error("Error adding designation"); 
+  }
+  fetchDesinationData();
+};
+
+
+// Department POST API
+const handleAddDepartment = async () => {
+  const data = {
+    name: departmentInput,
+    org_id: "482d8374-fca3-43ff-a638-02c8a425c492",
+  };
+  try {
+    const response = await axios.post("/department", data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    setFilledDepartment(data); 
+    message.success("Department added successfully"); 
+    setDepartmentInput(""); 
+    setDepartmentModal(false); 
+  } catch (error) {
+    console.error("Error adding department:", error);
+    message.error("Error adding department"); 
+  }
+  fetchDepartmentData();
+};
+
 
   //   Designation Remove User Button
   const handleRemoveDesignation = (indexToRemove) => {
@@ -181,6 +176,8 @@ const Customfeild = () => {
   const handleCancel = () => {
     setDesignationModal(false);
     setDepartmentModal(false);
+    setDesignationInput(""); 
+    setDepartmentInput(""); 
   };
 
   const handleToggleAccordion = (accordionType) => {
@@ -192,6 +189,53 @@ const Customfeild = () => {
       setShowDesignationAccordion(false);
     }
   };
+
+  // show Popup of filled designation data
+  const showFilledDesignationPopup = () => {
+    Modal.info({
+      title: "Filled Designation",
+      content: (
+        <div>
+          {filledDesignation && (
+            <>
+              <p>Designation: {filledDesignation.designation}</p>
+              <p>Org ID: {filledDesignation.org_id}</p>
+            </>
+          )}
+        </div>
+      ),
+    });
+  };
+  
+  // show Popup of filled department data
+  const showFilledDepartmentPopup = () => {
+    Modal.info({
+      title: "Filled Department",
+      content: (
+        <div>
+          {filledDepartment && (
+            <>
+              <p>Name: {filledDepartment.name}</p>
+              <p>Org ID: {filledDepartment.org_id}</p>
+            </>
+          )}
+        </div>
+      ),
+    });
+  };
+
+  //  To Clear Input Field
+  useEffect(() => {
+    if (!designationModal) {
+      setDesignationInput("");
+    }
+  }, [designationModal]);
+  
+  useEffect(() => {
+    if (!departmentModal) {
+      setDepartmentInput(""); 
+    }
+  }, [departmentModal]);
 
   return (
     <div>
@@ -255,6 +299,7 @@ const Customfeild = () => {
               type="text"
               className="mt-4"
               onChange={handledesignationvalue}
+              ref={designationInputRef}
             />
             <div className="content-center text-center mt-10">
               <button
@@ -323,6 +368,7 @@ const Customfeild = () => {
               type="text"
               className="mt-4"
               onChange={handleDepartmentValue}
+              ref={departmentInputRef}
             />
             <div className="content-center text-center mt-10">
               <button

@@ -16,10 +16,10 @@ const Preference = () => {
   }, []);
 
   useEffect(() => {
-    console.log('in useEffect');
+    // console.log('in useEffect');
     if (isClient) {
       const hrId = localStorage.getItem('hrId');
-      console.log('Hr id from local storage', hrId);
+      // console.log('Hr id from local storage', hrId);
       const fetchData = async () => {
         try {
           const response = await axios.get(`/employee/${hrId}`, {
@@ -30,14 +30,14 @@ const Preference = () => {
           console.log("Response of employee data for overview", response.data);
           setFetchData(response.data);
         } catch (error) {
-          console.log('Error fetching employee data', error);
+          // console.log('Error fetching employee data', error);
         }
       };
       fetchData();
     }
   }, [accessToken, isClient]);
 
-  console.log('Fetched HR data', fetchedData);
+  // console.log('Fetched HR data', fetchedData);
 
   return (
     <Tabs defaultActiveKey="1" className="px-2">
